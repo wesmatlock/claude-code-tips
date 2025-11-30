@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Claude Code status line script
-# Shows: Opus 4.5 | Daft | main | ████░░░░░░ 42%
+# Shows: Opus 4.5 | 📁 Daft | 🔀 main | ████░░░░░░ 42% of 200k tokens used
 
 input=$(cat)
 
@@ -49,14 +49,14 @@ if [[ -n "$transcript_path" && -f "$transcript_path" ]]; then
     for ((i=0; i<filled; i++)); do bar+="█"; done
     for ((i=0; i<empty; i++)); do bar+="░"; done
 
-    ctx="${bar} ${pct}%"
+    ctx="${bar} ${pct}% of 200k tokens used"
 else
-    ctx="░░░░░░░░░░ ?%"
+    ctx="░░░░░░░░░░ ?% of 200k tokens used"
 fi
 
 # Build output: Model | Dir | Branch | Context
-output="${model} | ${dir}"
-[[ -n "$branch" ]] && output+=" | ${branch}"
+output="${model} | 📁 ${dir}"
+[[ -n "$branch" ]] && output+=" | 🔀 ${branch}"
 output+=" | ${ctx}"
 
 echo "$output"
