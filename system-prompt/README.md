@@ -14,10 +14,11 @@ Extract and slim Claude Code's system prompt from the CLI bundle.
 |-----------|-----------|---------|---------|
 | System prompt | 3.0k | 2.8k | 200 tokens |
 | System tools | 14.6k | 8.8k | 5,800 tokens |
+| **Static total** | **~18k** | **~12k** | **~6,000 tokens (33%)** |
 | Allowed tools list | ~2.5-3.5k | 0 | ~3,000 tokens |
-| **Total baseline** | **~18k** | **~12k** | **~6,000 tokens (33%)** |
+| **Total (with allowed tools)** | **~21k** | **~12k** | **~9,000 tokens (43%)** |
 
-The allowed tools list (patch #19) saves additional tokens that grow with usage - in a project with 70+ approved commands, this was ~8,000-10,000 characters (~2,500-3,500 tokens).
+The allowed tools list (patch #19) grows with usage - in a project with 70+ approved commands, this was ~8,000-10,000 characters (~2,500-3,500 tokens).
 
 ## File Structure
 
@@ -165,11 +166,9 @@ Low priority - functional reference.
 
 ## What's NOT Captured
 
-Dynamic content injected at runtime (not patchable):
+Dynamic content injected at runtime:
 - Environment info (working directory, platform, date)
 - Git status snapshot
 - Model info ("You are powered by...")
 - CLAUDE.md file contents
 - MCP server instructions
-
-Note: The allowed tools list is now removed by patch #19.
