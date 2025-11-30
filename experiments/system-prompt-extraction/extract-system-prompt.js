@@ -11,7 +11,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const CLI_PATH = path.join(process.env.HOME, '.claude/local/node_modules/@anthropic-ai/claude-code/cli.js');
+// Allow custom path for testing (second arg after output file, or use env var)
+const CLI_PATH = process.env.CLI_PATH || path.join(process.env.HOME, '.claude/local/node_modules/@anthropic-ai/claude-code/cli.js');
 
 if (!fs.existsSync(CLI_PATH)) {
   console.error('Error: Claude Code CLI not found at', CLI_PATH);
