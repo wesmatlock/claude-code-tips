@@ -48,6 +48,23 @@ const patches = [
   },
   // File-based patches (loaded at runtime)
   { name: 'Slim TodoWrite examples (6KB → 0.4KB)', file: 'todowrite-examples' },
+  { name: 'Slim EnterPlanMode examples (670 → 150 chars)', file: 'enterplanmode-examples' },
+  // Git/PR simplification
+  { name: 'Simplify git commit section', file: 'git-commit' },
+  { name: 'Simplify PR creation section', file: 'pr-creation' },
+  {
+    name: 'Remove Code References section (363 chars)',
+    find: `# Code References
+
+When referencing specific functions or pieces of code include the pattern \\\`file_path:line_number\\\` to allow the user to easily navigate to the source code location.
+
+<example>
+user: Where are errors from the client handled?
+assistant: Clients are marked as failed in the \\\`connectToServer\\\` function in src/services/process.ts:712.
+</example>
+`,
+    replace: ''
+  },
 ];
 
 // Helper: compute SHA256 hash
@@ -104,7 +121,11 @@ function main() {
     }
 
     if (content.includes(find)) {
-      content = content.replace(find, replace);
+      if (patch.replaceAll) {
+        content = content.split(find).join(replace);
+      } else {
+        content = content.replace(find, replace);
+      }
       console.log(`[OK] ${patch.name}`);
       appliedCount++;
     } else {
