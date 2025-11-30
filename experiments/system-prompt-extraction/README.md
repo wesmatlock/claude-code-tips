@@ -5,21 +5,33 @@ Extracts the system prompt from the Claude Code CLI bundle.
 ## Files
 
 - `extract-system-prompt.js` - Node.js script to extract the prompt
-- `system-prompt.txt` - Extracted system prompt (~31KB)
+- `system-prompt.txt` - Extracted system prompt (~52KB, ~830 lines)
 
 ## Results
 
 Extracted content includes:
 - Identity and security guidelines
+- Looking up documentation section
 - Tone and style instructions
 - Professional objectivity guidelines
+- Planning without timelines
 - Task management with examples
+- Asking questions section
+- Hooks configuration
 - Doing tasks guidelines (with over-engineering warnings)
 - Tool usage policy
 - Git commit guidelines
 - Pull request guidelines
+- Other common operations
 - Code references
-- All tool descriptions (Bash, Read, Write, Edit, Glob, Grep, Task, etc.)
+- All 18 tool descriptions:
+  - Task (with all 4 agent types: general-purpose, statusline-setup, Explore, claude-code-guide)
+  - Bash, Glob, Grep, Read, Edit, Write
+  - NotebookEdit, WebFetch, WebSearch
+  - TodoWrite, AskUserQuestion
+  - BashOutput, KillShell
+  - Skill, SlashCommand
+  - EnterPlanMode, ExitPlanMode
 
 ## How it works
 
@@ -43,16 +55,18 @@ The extraction script:
 node extract-system-prompt.js [output-file]
 ```
 
-## What's NOT captured
+## What's NOT captured (~5-10%)
 
 Dynamic content injected at runtime:
 - Environment info (working directory, platform, date)
 - Git status snapshot
 - Model info ("You are powered by...")
 - Allowed tools list (tools that don't need approval)
-- CLAUDE.md file contents
-- MCP server instructions
+- CLAUDE.md file contents (project instructions)
+- MCP server instructions (if connected)
 - Custom output styles
+- Plan agent system prompt (uses same as Explore)
+- Some conditional PDF/notebook reading notes
 
 For complete runtime prompt, either:
 1. Ask Claude to output its own system prompt

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Claude Code System Prompt Extractor v2
+ * Claude Code System Prompt Extractor v3
  *
  * Extracts the system prompt from the minified Claude Code CLI bundle.
  * Handles conditional template sections and resolves minified variable names.
@@ -24,7 +24,7 @@ const content = fs.readFileSync(CLI_PATH, 'utf8');
 const versionMatch = content.match(/Version: ([\d.]+)/);
 const version = versionMatch ? versionMatch[1] : 'unknown';
 
-console.log('Claude Code System Prompt Extractor v2');
+console.log('Claude Code System Prompt Extractor v3');
 console.log('======================================');
 console.log('CLI Version:', version);
 console.log('');
@@ -69,8 +69,73 @@ function replaceVariables(text) {
   text = text.replace(/\$\{ZC\.agentType\}/g, 'Explore');
   text = text.replace(/\$\{yb1\}/g, 'claude-code-guide');
   text = text.replace(/\$\{F\}/g, 'SlashCommand');
+  text = text.replace(/\$\{Lk\}/g, 'WebSearch');
+
+  // Tool name references without ${}
+  text = text.replace(/,R8,/g, ', Task,');
+  text = text.replace(/,R5,/g, ', Edit,');
+  text = text.replace(/,vX,/g, ', Write,');
+  text = text.replace(/\[R8,/g, '[Task,');
+  text = text.replace(/,Nk\]/g, ', NotebookEdit]');
 
   return text;
+}
+
+/**
+ * Extract agent type descriptions for Task tool
+ */
+function extractAgentTypes() {
+  const agents = [];
+
+  // general-purpose
+  const gpIdx = content.indexOf('General-purpose agent for');
+  if (gpIdx > -1) {
+    let end = gpIdx;
+    for (let i = gpIdx; i < Math.min(content.length, gpIdx + 500); i++) {
+      if (content[i] === '"' || content[i] === "'") { end = i; break; }
+    }
+    agents.push({
+      name: 'general-purpose',
+      desc: content.slice(gpIdx, end)
+    });
+  }
+
+  // statusline-setup - hardcoded since the quote in "user's" makes extraction tricky
+  agents.push({
+    name: 'statusline-setup',
+    desc: "Use this agent to configure the user's Claude Code status line setting.",
+    tools: 'Read, Edit'
+  });
+
+  // Explore
+  const expIdx = content.indexOf('Fast agent specialized for exploring codebases');
+  if (expIdx > -1) {
+    let end = expIdx;
+    for (let i = expIdx; i < Math.min(content.length, expIdx + 600); i++) {
+      if (content[i] === "'" && content[i-1] !== '\\') { end = i; break; }
+    }
+    agents.push({
+      name: 'Explore',
+      desc: content.slice(expIdx, end),
+      tools: 'All tools'
+    });
+  }
+
+  // claude-code-guide
+  const ccgIdx = content.indexOf('Use this agent when the user asks questions about Claude Code or the Claude Agent SDK');
+  if (ccgIdx > -1) {
+    let end = ccgIdx;
+    for (let i = ccgIdx; i < Math.min(content.length, ccgIdx + 700); i++) {
+      if (content[i] === "'" && content[i-1] !== '\\') { end = i; break; }
+    }
+    agents.push({
+      name: 'claude-code-guide',
+      desc: content.slice(ccgIdx, end),
+      tools: 'Glob, Grep, Read, WebFetch, WebSearch'
+    });
+  }
+
+  return agents;
 }
 
 /**
@@ -224,11 +289,16 @@ If the user asks for help or wants to give feedback:
 `);
 
 // === DOCUMENTATION LOOKUP ===
-const docSection = extractLargeSection('# Looking up your own documentation:');
-if (docSection) {
+const docIdx = content.indexOf('# Looking up your own documentation:');
+if (docIdx > -1) {
+  // Find end - it ends at the conditional ${Y!==null...
+  let docEnd = content.indexOf('${Y!==null', docIdx);
+  if (docEnd === -1) docEnd = docIdx + 1000;
+  let docText = content.slice(docIdx, docEnd).trim();
+  docText = replaceVariables(docText);
   sections.push(`
 ################################################################################
-${docSection}
+${docText}
 `);
 }
 
@@ -256,6 +326,22 @@ if (askingSection) {
   sections.push(`
 ################################################################################
 ${askingSection}
+`);
+}
+
+// === HOOKS ===
+const hooksIdx = content.indexOf("Users may configure 'hooks'");
+if (hooksIdx > -1) {
+  let hooksEnd = hooksIdx;
+  for (let i = hooksIdx; i < Math.min(content.length, hooksIdx + 500); i++) {
+    if (content[i] === '`' && content[i-1] !== '\\') {
+      hooksEnd = i;
+      break;
+    }
+  }
+  const hooksText = content.slice(hooksIdx, hooksEnd);
+  sections.push(`
+${hooksText}
 `);
 }
 
@@ -296,6 +382,23 @@ ${prSection}
 `);
 }
 
+// === OTHER COMMON OPERATIONS ===
+const otherOpsIdx = content.indexOf('# Other common operations');
+if (otherOpsIdx > -1) {
+  let otherOpsEnd = otherOpsIdx;
+  for (let i = otherOpsIdx; i < Math.min(content.length, otherOpsIdx + 500); i++) {
+    if (content[i] === '`' && content[i-1] !== '\\') {
+      otherOpsEnd = i;
+      break;
+    }
+  }
+  const otherOpsText = content.slice(otherOpsIdx, otherOpsEnd);
+  sections.push(`
+################################################################################
+${otherOpsText}
+`);
+}
+
 // === CODE REFERENCES ===
 const codeRefSection = extractLargeSection('# Code References', 1000);
 if (codeRefSection) {
@@ -312,27 +415,66 @@ sections.push(`
 ################################################################################
 `);
 
+// First, add agent types after Task tool description
+const agentTypes = extractAgentTypes();
+
 const tools = [
-  { name: 'Task', search: 'Launch a new agent to handle complex' },
+  { name: 'Task', search: 'Launch a new agent to handle complex', appendAgentTypes: true },
   { name: 'Bash', search: 'Executes a given bash command in a persistent shell' },
   { name: 'Glob', search: 'Fast file pattern matching tool' },
   { name: 'Grep', search: 'A powerful search tool built on ripgrep' },
+  { name: 'ExitPlanMode', search: 'Use this tool when you are in plan mode and have finished' },
   { name: 'Read', search: 'Reads a file from the local filesystem' },
   { name: 'Edit', search: 'Performs exact string replacements in files' },
   { name: 'Write', search: 'Writes a file to the local filesystem' },
+  { name: 'NotebookEdit', search: 'Completely replaces the contents of a specific cell in a Jupyter notebook' },
   { name: 'WebFetch', search: 'Fetches content from a specified URL' },
-  { name: 'WebSearch', search: 'Allows Claude to search the web' },
   { name: 'TodoWrite', search: 'Use this tool to create and manage a structured task list' },
+  { name: 'WebSearch', search: 'Allows Claude to search the web' },
+  { name: 'BashOutput', search: 'Retrieves output from a running or completed background bash shell' },
+  { name: 'KillShell', search: 'Kills a running background bash shell' },
   { name: 'AskUserQuestion', search: 'Use this tool when you need to ask the user questions' },
+  { name: 'Skill', search: 'Execute a skill within the main conversation' },
+  { name: 'SlashCommand', search: 'Execute a slash command within the main conversation' },
+  { name: 'EnterPlanMode', search: 'Use this tool when you encounter a complex task that requires careful planning' },
 ];
 
 for (const tool of tools) {
   const desc = extractToolDescription(tool.search);
   if (desc) {
-    const cleanDesc = replaceVariables(desc);
+    let cleanDesc = replaceVariables(desc);
+
+    // For Task tool, inject agent type descriptions BEFORE variable replacement
+    if (tool.appendAgentTypes && agentTypes.length > 0) {
+      // The original has "Available agent types...\n${Q}\n\nWhen using..."
+      // Replace the ${Q} placeholder with actual agent types
+      let agentSection = '';
+      for (const agent of agentTypes) {
+        agentSection += `- ${agent.name}: ${agent.desc}`;
+        if (agent.tools) {
+          agentSection += ` (Tools: ${agent.tools})`;
+        }
+        agentSection += '\n';
+      }
+      // Match ${Q} or the already-replaced variants
+      cleanDesc = cleanDesc.replace(
+        /Available agent types and the tools they have access to:\s*\n\$\{Q\}\s*\n/,
+        'Available agent types and the tools they have access to:\n' + agentSection + '\n'
+      );
+      // Also try already-replaced version
+      cleanDesc = cleanDesc.replace(
+        /Available agent types and the tools they have access to:\s*\n\s*(Task|\[DYNAMIC\]|)\s*\n\s*When using/,
+        'Available agent types and the tools they have access to:\n' + agentSection + '\nWhen using'
+      );
+    }
+
+    // Ensure description ends cleanly (no trailing conditional artifacts)
+    cleanDesc = cleanDesc.replace(/\$\{[^}]*\?\s*$/, '');
+    cleanDesc = cleanDesc.trim();
+
     sections.push(`
 ## ${tool.name}
-${cleanDesc.slice(0, 2000)}${cleanDesc.length > 2000 ? '\n[... truncated]' : ''}
+${cleanDesc}
 `);
   }
 }
@@ -404,6 +546,21 @@ output = output.replace(/use the \[DYNAMIC\] tool instead of the Task/g, 'use th
 output = output.replace(/^\s*\[DYNAMIC\]\s*$/gm, '');
 output = output.replace(/\n\s*\[DYNAMIC\]\s*\n/g, '\n');
 output = output.replace(/\n   \[DYNAMIC\]\n/g, '\n');  // Indented version
+
+// Clean up remaining conditional patterns
+output = output.replace(/\$\{Y===null\|\|Y\.keepCodingInstructions===!0\?\s*\n?/g, '');
+output = output.replace(/\$\{p3A\(\)\?\s*\n?/g, '');
+output = output.replace(/\$\{B\?\s*\n?/g, '');
+output = output.replace(/\$\{Y!==null\?"":"?\s*\n?/g, '');
+
+// Clean up [DYNAMIC] in examples (replace with tool names)
+output = output.replace(/the \[DYNAMIC\] tool to write/g, 'the Write tool to write');
+output = output.replace(/the \[DYNAMIC\] tool to launch/g, 'the Task tool to launch');
+output = output.replace(/use the \[DYNAMIC\] tool/g, 'use the Write tool');
+output = output.replace(/Uses the \[DYNAMIC\] tool/g, 'Uses the Task tool');
+
+// Remove any remaining standalone [DYNAMIC]
+output = output.replace(/\[DYNAMIC\]/g, 'Task');
 
 // Write output
 const outputPath = process.argv[2] || path.join(__dirname, 'system-prompt.txt');
