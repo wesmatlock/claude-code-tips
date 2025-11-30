@@ -2,10 +2,10 @@
 
 ## Tip 0: Customize your status line
 
-You can customize the status line at the bottom of Claude Code to show useful info. I set mine up to show the model, current directory, git branch (if any), and a visual progress bar for token usage:
+You can customize the status line at the bottom of Claude Code to show useful info. I set mine up to show the model, current directory, git branch (if any), uncommitted file count, and a visual progress bar for token usage:
 
 ```
-Opus 4.5 | 📁claude-code-tips | 🔀main | ░░░░░░░░░░ 9% of 200k tokens used
+Opus 4.5 | 📁claude-code-tips | 🔀main (2 files uncommitted) | ░░░░░░░░░░ 9% of 200k tokens used
 ```
 
 This is especially helpful for keeping an eye on your context usage.
