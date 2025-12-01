@@ -159,28 +159,30 @@ description: Fetch content from Reddit using Gemini CLI when WebFetch is blocked
 
 When WebFetch fails to access Reddit (blocked, 403, etc.), use Gemini CLI via tmux.
 
+Pick a unique session name (e.g., `gemini_abc123`) and use it consistently throughout.
+
 ## Setup
 
 ```bash
-tmux new-session -d -s gemini_reddit -x 200 -y 50
-tmux send-keys -t gemini_reddit 'gemini' Enter
+tmux new-session -d -s <session_name> -x 200 -y 50
+tmux send-keys -t <session_name> 'gemini' Enter
 sleep 3  # wait for Gemini CLI to load
 ```
 
 ## Send query and capture output
 
 ```bash
-tmux send-keys -t gemini_reddit 'Your Reddit query here' Enter
+tmux send-keys -t <session_name> 'Your Reddit query here' Enter
 sleep 30  # wait for response (adjust as needed, up to 90s for complex searches)
-tmux capture-pane -t gemini_reddit -p -S -500  # capture output
+tmux capture-pane -t <session_name> -p -S -500  # capture output
 ```
 
-If you capture the pane and only see your own message with no response, you forgot to send Enter. Run `tmux send-keys -t gemini_reddit Enter` to submit.
+If you capture the pane and only see your own message with no response, you forgot to send Enter. Run `tmux send-keys -t <session_name> Enter` to submit.
 
 ## Cleanup when done
 
 ```bash
-tmux kill-session -t gemini_reddit
+tmux kill-session -t <session_name>
 ```
 ````
 
