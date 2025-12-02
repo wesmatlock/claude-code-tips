@@ -20,7 +20,7 @@ mkdir patches
 Copy `extract-system-prompt.js` from previous version:
 
 ```bash
-cp ../2.0.55/extract-system-prompt.js .
+cp ../PREV_VERSION/extract-system-prompt.js .
 ```
 
 **Important:** The minified variable names change between versions. You'll need to update the mappings.
@@ -66,7 +66,7 @@ Diff against previous version to identify:
 - Extraction bugs (`[DYNAMIC]` placeholders indicate unmapped variables)
 
 ```bash
-diff ../2.0.55/system-prompt-original-unpatched.md system-prompt-original-unpatched.md
+diff ../PREV_VERSION/system-prompt-original-unpatched.md system-prompt-original-unpatched.md
 ```
 
 If you see wrong tool names or `[DYNAMIC]` in unexpected places, you likely have unmapped variables. Iterate on the mappings until the diff shows only real changes.
@@ -74,7 +74,7 @@ If you see wrong tool names or `[DYNAMIC]` in unexpected places, you likely have
 ## 5. Copy and update patch-cli.js
 
 ```bash
-cp ../2.0.55/patch-cli.js .
+cp ../PREV_VERSION/patch-cli.js .
 ```
 
 Update:
