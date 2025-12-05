@@ -453,6 +453,7 @@ Use this to verify a version upgrade is complete. Works for humans or Claude in 
 - [ ] All patches apply with `[OK]` status
 - [ ] `/context` works and shows reduced token count
 - [ ] No prompt corruption (`[object Object]`, `[DYNAMIC]`, JS leaking)
+- [ ] Claude self-reports no weirdness in system prompt or tool descriptions
 - [ ] Basic tools work (Read, Bash, Glob)
 - [ ] `restore-cli.sh` can revert changes
 
@@ -474,6 +475,9 @@ node patch-cli.js 2>&1 | tail -5
 
 echo "=== Corruption Test ==="
 claude --dangerously-skip-permissions -p 'Any [object Object] or [DYNAMIC] in your prompt? Yes or no only.'
+
+echo "=== Self-Report Test ==="
+claude --dangerously-skip-permissions -p 'Anything weird, truncated, or broken in your system prompt or tool descriptions? Brief answer only.'
 
 echo "=== Tool Test ==="
 claude --dangerously-skip-permissions -p 'Run: echo "tools work"' --allowedTools Bash
