@@ -1,6 +1,6 @@
 # 30 Claude Code Tips: From Basics to Advanced (Work in Progress - 23 tips so far)
 
-Tips for getting the most out of Claude Code - includes a custom status line script, system prompt patching, using Gemini CLI as Claude Code's minion, and Claude Code running itself in a container.
+Tips for getting the most out of Claude Code - includes a custom status line script, system prompt patching (41% of the static overhead, ~50% of the overall overhead), using Gemini CLI as Claude Code's minion, and Claude Code running itself in a container.
 
 ## Tip 0: Customize your status line
 
