@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Claude Code status line script
-# Shows: Opus 4.5 | 📁 Daft | 🔀 main (2 files uncommitted) | ████▄░░░░░ 45% of 200k tokens used (/context)
+# Shows: Opus 4.5 | 📁Daft | 🔀main (2 files uncommitted, synced 20m ago) | ████▄░░░░░ 45% of 200k tokens used (/context)
 #
 # Context calculation:
 # - 200k total context window
