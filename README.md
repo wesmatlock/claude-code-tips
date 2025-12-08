@@ -473,7 +473,7 @@ I've found that TDD (Test-Driven Development) works really well with Claude Code
 3. Commit the tests
 4. Write the code to make them pass
 
-This is actually how I built cc-safe. By writing failing tests first and committing them before implementation, you create a clear contract for what the code should do. Claude Code then has a concrete target to hit, and you can verify the implementation is correct by running the tests.
+This is actually how I built [cc-safe](https://github.com/ykdojo/cc-safe). By writing failing tests first and committing them before implementation, you create a clear contract for what the code should do. Claude Code then has a concrete target to hit, and you can verify the implementation is correct by running the tests.
 
 If you want to be extra sure, review the tests yourself to make sure they don't do anything stupid like just returning true.
 
