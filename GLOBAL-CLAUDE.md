@@ -30,3 +30,7 @@ tmux capture-pane -t <name> -p
 ```
 
 Note: For Claude Code sessions, you may need to send Enter again after a short delay to ensure the prompt is submitted.
+
+# Python
+
+Use Python 3.12 whenever Python 3 or Python is needed.
