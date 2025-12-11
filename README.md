@@ -594,10 +594,8 @@ Claude Code's input box is designed to emulate common terminal/readline shortcut
 - `Ctrl+W` - Delete the previous word
 - `Ctrl+U` - Delete from cursor to beginning of line
 - `Ctrl+K` - Delete from cursor to end of line
-- `Ctrl+G` - Open your prompt in an external editor
-
-**Other:**
 - `Ctrl+C` / `Ctrl+L` - Clear the current input
+- `Ctrl+G` - Open your prompt in an external editor
 
 If you're familiar with bash, zsh, or other shells, you'll feel right at home.
 
