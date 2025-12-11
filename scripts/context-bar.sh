@@ -80,23 +80,42 @@ if [[ -n "$cwd" && -d "$cwd" ]]; then
     fi
 fi
 
-# Get transcript path for last message feature
+# Get transcript path for context calculation and last message feature
 transcript_path=$(echo "$input" | jq -r '.transcript_path // empty')
 
-# Calculate context bar using JSON input fields
-total_input=$(echo "$input" | jq -r '.context_window.total_input_tokens // 0')
-total_output=$(echo "$input" | jq -r '.context_window.total_output_tokens // 0')
+# Get context window size from JSON (accurate), but calculate tokens from transcript
+# (more accurate than total_input_tokens which excludes system prompt/tools/memory)
+# See: github.com/anthropics/claude-code/issues/13652
 max_context=$(echo "$input" | jq -r '.context_window.context_window_size // 200000')
-total_tokens=$((total_input + total_output))
-
 max_k=$((max_context / 1000))
 
-if [[ "$total_tokens" -gt 0 ]]; then
-    pct=$((total_tokens * 100 / max_context))
+# Calculate context bar from transcript
+if [[ -n "$transcript_path" && -f "$transcript_path" ]]; then
+    context_length=$(jq -s '
+        map(select(.message.usage and .isSidechain != true and .isApiErrorMessage != true)) |
+        last |
+        if . then
+            (.message.usage.input_tokens // 0) +
+            (.message.usage.cache_read_input_tokens // 0) +
+            (.message.usage.cache_creation_input_tokens // 0)
+        else 0 end
+    ' < "$transcript_path")
+
+    # 20k baseline: includes system prompt (~3k), tools (~15k), memory (~300),
+    # plus ~2k for git status, env block, XML framing, and other dynamic context
+    baseline=20000
+    bar_width=10
+
+    if [[ "$context_length" -gt 0 ]]; then
+        pct=$((context_length * 100 / max_context))
+    else
+        # At conversation start, ~20k baseline is already loaded
+        pct=$((baseline * 100 / max_context))
+    fi
+
     [[ $pct -gt 100 ]] && pct=100
 
     bar=""
-    bar_width=10
     for ((i=0; i<bar_width; i++)); do
         bar_start=$((i * 10))
         progress=$((pct - bar_start))
@@ -111,7 +130,7 @@ if [[ "$total_tokens" -gt 0 ]]; then
 
     ctx="${bar} ${pct}% of ${max_k}k tokens used (/context)"
 else
-    ctx="░░░░░░░░░░ ?% of ${max_k}k tokens used (/context)"
+    ctx="█░░░░░░░░░ ~10% of ${max_k}k tokens used (/context)"
 fi
 
 # Build output: Model | Dir | Branch (uncommitted) | Context
