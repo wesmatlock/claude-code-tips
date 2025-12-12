@@ -44,6 +44,7 @@ Here are my tips for getting the most out of Claude Code, including a custom sta
 - [Tip 36: The era of personalized software is here](#tip-36-the-era-of-personalized-software-is-here)
 - [Tip 37: Navigating and editing your input box](#tip-37-navigating-and-editing-your-input-box)
 - [Tip 38: Share your knowledge and contribute where you can](#tip-38-share-your-knowledge-and-contribute-where-you-can)
+- [Tip 39: Keep learning!](#tip-39-keep-learning)
 
 <!-- /TOC -->
 
@@ -632,6 +633,21 @@ When it comes to contributing, I've been sending issues to the Claude Code repo.
 - Added search functionality to `/permissions` command
 
 It's kind of amazing how fast the team can react to feature requests and bug reports. But it makes sense because they're using Claude Code to build Claude Code itself.
+
+## Tip 39: Keep learning!
+
+There are several effective ways to keep learning about Claude Code:
+
+**Ask Claude Code itself** - If you have a question about Claude Code, just ask it. Claude Code has a specialized sub-agent for answering questions about its own features, slash commands, settings, hooks, MCP servers, and more.
+
+**Check the release notes** - Type `/release-notes` to see what's new in your current version. This is the best way to learn about the latest features.
+
+**Learn from the community** - The [r/ClaudeAI](https://www.reddit.com/r/ClaudeAI/) subreddit is a great place to learn from other users and see what workflows people are using.
+
+**Follow Ado for daily tips** - Ado ([@adocomplete](https://x.com/adocomplete)) is a DevRel at Anthropic who's been posting daily Claude Code tips throughout December in his "Advent of Claude" series. Each day covers a different feature or workflow - things like named sessions, `/stats`, headless mode, vim mode, and more.
+
+- [Twitter/X: Advent of Claude posts](https://x.com/search?q=from%3Aadocomplete%20advent%20of%20claude&src=typed_query&f=live)
+- [LinkedIn: Advent of Claude posts](https://www.linkedin.com/search/results/content/?fromMember=%5B%22ACoAAAFdD3IBYHwKSh6FsyGqOh1SpbrZ9ZHTjnI%22%5D&keywords=advent%20of%20claude&origin=FACETED_SEARCH&sid=zDV&sortBy=%22date_posted%22)
 
 ---
 
