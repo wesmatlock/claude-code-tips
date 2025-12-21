@@ -640,6 +640,11 @@ Or in `~/.claude/settings.json` (requires restart):
 
 The quickest method works everywhere without any setup: type `\` followed by Enter to create a newline. For keyboard shortcuts, run `/terminal-setup` in Claude Code. On Mac Terminal.app, I use Option+Enter.
 
+**Pasting images:**
+- `Ctrl+V` (Mac/Linux) or `Alt+V` (Windows) - Paste an image from your clipboard
+
+Note: On Mac, it's `Ctrl+V`, not `Cmd+V`.
+
 ## Tip 38: Spend some time planning, but also prototype quickly
 
 You want to spend enough time planning so that Claude Code knows what to build and how to build it. This means making high-level decisions early: what technology to use, how the project should be structured, where each functionality should live, which files things should go in. It's important to make good decisions as early as you can.
