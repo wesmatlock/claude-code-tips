@@ -88,70 +88,73 @@ function loadPatch(name) {
 }
 
 // Patches to apply (find → replace)
-// All patches are file-based (loaded at runtime from patches/ folder)
+// Only patches saving 100+ chars are included
 const patches = [
-  { name: 'Remove duplicate emoji instruction in Edit tool', file: 'edit-emoji' },
-  { name: 'Remove duplicate emoji instruction in Write tool', file: 'write-emoji' },
+  // Big wins (1KB+)
   { name: 'Slim TodoWrite examples (6KB → 0.4KB)', file: 'todowrite-examples' },
-  { name: 'Slim TodoWrite states section (1.8KB → 0.4KB)', file: 'todowrite-states' },
-  { name: 'Slim Task Management examples (~1.2KB → 130 chars)', file: 'task-management-examples' },
-  { name: 'Slim EnterPlanMode examples (670 → 150 chars)', file: 'enterplanmode-examples' },
-  // Tool description slimming
-  { name: 'Slim Bash tool description (3.7KB → 0.6KB)', file: 'bash-tool' },
-  { name: 'Slim Task tool description (4.1KB → 0.6KB)', file: 'task-tool' },
-  // Git/PR simplification
-  { name: 'Simplify git commit section', file: 'git-commit' },
-  { name: 'Simplify PR creation section', file: 'pr-creation' },
-  { name: 'Remove Code References section (363 chars)', file: 'code-references' },
-  // New patches - Round 2
-  { name: 'Slim TodoWrite When to Use (1.2KB → 200 chars)', file: 'todowrite-when-to-use' },
-  { name: 'Slim Professional objectivity (762 → 120 chars)', file: 'professional-objectivity' },
-  { name: 'Slim WebFetch usage notes (808 → 120 chars)', file: 'webfetch-usage' },
-  { name: 'Slim WebSearch CRITICAL section (485 → 100 chars)', file: 'websearch-critical' },
-  { name: 'Slim Skill tool instructions (887 → 80 chars)', file: 'skill-tool' },
-  // Round 3 - Final optimizations
-  { name: 'Slim EnterPlanMode When to Use (1.2KB → 200 chars)', file: 'enterplanmode-when-to-use' },
-  { name: 'Slim Read tool intro (292 → 110 chars)', file: 'read-tool' },
-  // Round 4 - Dynamic content optimization
-  { name: 'Remove allowed tools list from prompt (saves 5-10KB+)', file: 'allowed-tools' },
-  // Round 5 - Final cleanup
-  { name: 'Slim over-engineering bullets (~900 chars → 200)', file: 'over-engineering' },
-  { name: 'Slim documentation lookup section (~600 chars → 150)', file: 'documentation-lookup' },
-  { name: 'Remove tool usage policy examples (~400 chars)', file: 'tool-usage-examples' },
-  // Round 6 - Grep tool optimization
-  { name: 'Slim Grep tool description (~715 → 350 chars)', file: 'grep-tool' },
-  { name: 'Slim Grep head_limit param (232 → 30 chars)', file: 'grep-params-head_limit' },
-  { name: 'Slim Grep output_mode param (227 → 70 chars)', file: 'grep-params-output_mode' },
-  { name: 'Slim Grep offset param (135 → 35 chars)', file: 'grep-params-offset' },
-  { name: 'Slim Grep multiline param (112 → 40 chars)', file: 'grep-params-multiline' },
-  { name: 'Slim Grep type param (114 → 30 chars)', file: 'grep-params-type' },
-  // Round 7 - Remove redundant parallel calls guidance
-  { name: 'Remove parallel calls from Glob (~50 tokens)', file: 'glob-parallel-calls' },
-  { name: 'Remove parallel calls from Read (~50 tokens)', file: 'read-parallel-calls' },
-  // Round 8 - Remove duplicate content
-  { name: 'Slim parallel calls guidance (~100 tokens)', file: 'parallel-calls' },
-  // Round 9 - More tool description slimming
-  { name: 'Slim ExitPlanMode (~1900 → 220 chars)', file: 'exitplanmode' },
-  { name: 'Slim NotebookEdit (~510 → 100 chars)', file: 'notebookedit' },
-  { name: 'Slim AskUserQuestion (~450 → 190 chars)', file: 'askuserquestion' },
-  { name: 'Slim BashOutput (~440 → 95 chars)', file: 'bashoutput' },
-  { name: 'Slim KillShell (~260 → 35 chars)', file: 'killshell' },
-  // Round 10 - Further shortening
   { name: 'Remove Task tool Usage notes + examples (~2KB)', file: 'task-usage-notes' },
-  { name: 'Further slim git commit (~400 → 200 chars)', file: 'git-commit-v2' },
-  { name: 'Further slim PR creation (~400 → 150 chars)', file: 'pr-creation-v2' },
-  { name: 'Remove TodoWrite examples (~400 chars)', file: 'todowrite-examples-v2' },
-  // Round 11 - New tool descriptions and grep params
+  { name: 'Simplify git commit section (~3.4KB)', file: 'git-commit' },
+  { name: 'Slim Bash tool description (3.7KB → 0.6KB)', file: 'bash-tool' },
+  { name: 'Simplify PR creation section (~1.7KB)', file: 'pr-creation' },
+  { name: 'Slim ExitPlanMode (~1.9KB → 220 chars)', file: 'exitplanmode' },
+  { name: 'Slim EnterPlanMode When to Use (1.2KB → 200 chars)', file: 'enterplanmode-when-to-use' },
+  { name: 'Slim TodoWrite states section (1.8KB → 0.4KB)', file: 'todowrite-states' },
+  { name: 'Slim Skill tool instructions (887 → 80 chars)', file: 'skill-tool' },
+  { name: 'Slim TodoWrite When to Use (1.2KB → 200 chars)', file: 'todowrite-when-to-use' },
+
+  // Medium wins (200-1000 chars)
+  { name: 'Slim over-engineering bullets (~900 → 200 chars)', file: 'over-engineering' },
   { name: 'Slim LSP tool description (~750 → 150 chars)', file: 'lsp-tool' },
   { name: 'Slim Edit tool description (~900 → 200 chars)', file: 'edit-tool' },
+  { name: 'Slim EnterPlanMode examples (670 → 150 chars)', file: 'enterplanmode-examples' },
+  { name: 'Slim Professional objectivity (762 → 120 chars)', file: 'professional-objectivity' },
+  { name: 'Slim WebFetch usage notes (808 → 120 chars)', file: 'webfetch-usage' },
+  { name: 'Slim documentation lookup section (~600 → 150 chars)', file: 'documentation-lookup' },
+  { name: 'Slim specialized tools instruction (~500 → 130 chars)', file: 'specialized-tools' },
+  { name: 'Slim Grep tool description (~715 → 350 chars)', file: 'grep-tool' },
+  { name: 'Slim TodoWrite examples v2 (~400 chars)', file: 'todowrite-examples-v2' },
+  { name: 'Slim claude-code-guide agent (~500 → 115 chars)', file: 'agent-claude-code-guide' },
+  { name: 'Slim NotebookEdit (~510 → 100 chars)', file: 'notebookedit' },
+  { name: 'Slim Task Management examples (~1.2KB → 130 chars)', file: 'task-management-examples' },
   { name: 'Slim Write tool description (~550 → 100 chars)', file: 'write-tool' },
+  { name: 'Slim WebSearch CRITICAL section (485 → 100 chars)', file: 'websearch-critical' },
+  { name: 'Slim BashOutput (~440 → 95 chars)', file: 'bashoutput' },
+  { name: 'Remove Code References section (363 chars)', file: 'code-references' },
+  { name: 'Further slim git commit (~400 → 200 chars)', file: 'git-commit-v2' },
+  { name: 'Slim parallel calls guidance (~350 chars)', file: 'parallel-calls' },
+  { name: 'Slim Explore agent (~350 → 120 chars)', file: 'agent-explore' },
+  { name: 'Slim security warning (~430 → 120 chars)', file: 'security-warning' },
+  { name: 'Further slim PR creation (~400 → 150 chars)', file: 'pr-creation-v2' },
   { name: 'Slim Glob tool description (~400 → 100 chars)', file: 'glob-tool' },
-  { name: 'Slim Grep glob param (~80 → 20 chars)', file: 'grep-params-glob' },
-  { name: 'Slim Grep -i param (~35 → 18 chars)', file: 'grep-params-i' },
-  { name: 'Slim Grep -n param (~95 → 30 chars)', file: 'grep-params-n' },
-  { name: 'Slim Grep path param (~75 → 25 chars)', file: 'grep-params-path' },
-  { name: 'Slim Grep pattern param (~60 → 15 chars)', file: 'grep-params-pattern' },
+  { name: 'Remove duplicate parallel calls instruction (~270 chars)', file: 'parallel-calls-duplicate' },
+  { name: 'Slim AskUserQuestion (~450 → 190 chars)', file: 'askuserquestion' },
+  { name: 'Slim Bash.description param (~300 → 40 chars)', file: 'bash-description-param' },
+  { name: 'Slim hooks instruction (~380 → 110 chars)', file: 'hooks-instruction' },
   { name: 'Slim Grep -A/-B/-C context params (~300 → 100 chars)', file: 'grep-params-context' },
+  { name: 'Slim KillShell (~260 → 35 chars)', file: 'killshell' },
+  { name: 'Remove tool usage policy examples (~400 chars)', file: 'tool-usage-examples' },
+  { name: 'Remove allowed tools list from prompt (saves 5-10KB+)', file: 'allowed-tools' },
+  { name: 'Slim planning timelines (~290 → 50 chars)', file: 'planning-timelines' },
+  { name: 'Slim Glob.path param (~255 → 65 chars)', file: 'glob-path-param' },
+  { name: 'Slim Task tool description (4.1KB → 0.6KB)', file: 'task-tool' },
+  { name: 'Slim Grep output_mode param (227 → 70 chars)', file: 'grep-params-output_mode' },
+  { name: 'Slim Grep head_limit param (232 → 30 chars)', file: 'grep-params-head_limit' },
+  { name: 'Slim doing tasks intro (~230 → 30 chars)', file: 'doing-tasks-intro' },
+  { name: 'Slim CLI format instruction (~230 → 35 chars)', file: 'cli-format-instruction' },
+  { name: 'Slim Read tool intro (292 → 110 chars)', file: 'read-tool' },
+  { name: 'Slim system-reminder instruction (~280 → 90 chars)', file: 'system-reminder-instruction' },
+  { name: 'Slim output text instruction (~230 → 60 chars)', file: 'output-text-instruction' },
+  { name: 'Slim general-purpose agent (~280 → 100 chars)', file: 'agent-general-purpose' },
+  { name: 'Slim explore instruction (~275 → 105 chars)', file: 'explore-instruction' },
+  // glob-parallel-calls and read-parallel-calls removed - their text is already removed by glob-tool and read-tool patches
+  { name: 'Slim propose changes (~175 → 30 chars)', file: 'propose-changes' },
+  { name: 'Slim URL warning (~220 → 70 chars)', file: 'url-warning' },
+  { name: 'Slim security vulnerabilities (~200 → 60 chars)', file: 'security-vulnerabilities' },
+  { name: 'Slim Plan agent (~210 → 85 chars)', file: 'agent-plan' },
+  { name: 'Slim Read offset/limit line (~165 → 50 chars)', file: 'read-tool-offset' },
+  { name: 'Slim Grep offset param (135 → 35 chars)', file: 'grep-params-offset' },
+  { name: 'Slim Grep type param (114 → 30 chars)', file: 'grep-params-type' },
+  { name: 'Slim todos mark complete (~150 → 45 chars)', file: 'todos-mark-complete' },
 ];
 
 // Helper: compute SHA256 hash

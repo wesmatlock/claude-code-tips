@@ -1,1 +1,0 @@
-glob:m.string().optional().describe("File filter (*.js)")
