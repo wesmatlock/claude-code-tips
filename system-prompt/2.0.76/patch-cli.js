@@ -184,7 +184,6 @@ const patches = [
   { name: 'Slim BashOutput (~440 → 95 chars)', file: 'bashoutput' },
   { name: 'Remove Code References section (363 chars)', file: 'code-references' },
   { name: 'Further slim git commit (~400 → 200 chars)', file: 'git-commit-v2' },
-  { name: 'Slim parallel calls guidance (~350 chars)', file: 'parallel-calls' },
   { name: 'Slim Explore agent (~350 → 120 chars)', file: 'agent-explore' },
   { name: 'Slim security warning (~430 → 120 chars)', file: 'security-warning' },
   { name: 'Further slim PR creation (~400 → 150 chars)', file: 'pr-creation-v2' },
