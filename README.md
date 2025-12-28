@@ -639,7 +639,7 @@ Claude Code's input box is designed to emulate common terminal/readline shortcut
 - `Ctrl+U` - Delete from cursor to beginning of line
 - `Ctrl+K` - Delete from cursor to end of line
 - `Ctrl+C` / `Ctrl+L` - Clear the current input
-- `Ctrl+G` - Open your prompt in an external editor
+- `Ctrl+G` - Open your prompt in an external editor (useful for pasting long text, since pasting directly into the terminal can be slow)
 
 If you're familiar with bash, zsh, or other shells, you'll feel right at home.
 
