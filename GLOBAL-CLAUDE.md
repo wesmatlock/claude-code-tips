@@ -51,8 +51,9 @@ Use Python 3.12 whenever Python 3 or Python is needed.
 
 # Browser Automation
 
-Prefer DOM-based interaction over screenshots:
+**ALWAYS use DOM-based interaction. NEVER use coordinates.**
+
 - Use `read_page` to get element refs
 - Use `find` to locate elements by description
-- Click/interact using `ref` parameter instead of coordinates
-- Only use screenshots when visual context is needed
+- Click/interact using `ref` parameter - NEVER coordinates
+- Screenshots only for visual context, not for finding click targets

@@ -181,6 +181,8 @@ alias co='code'
 alias q='cd ~/Desktop/projects'
 ```
 
+Once you have the `c` alias, you can combine it with flags: `c -c` continues your last conversation, and `c -r` shows a list of recent conversations to resume.
+
 ## Tip 7: Proactively compact your context
 
 There's a `/compact` command in Claude Code that summarizes your conversation to free up context space. Automatic compaction also happens when the full available context is filled. The total available context window for Opus 4.5 is currently 200k, and 45k of that is reserved for automatic compaction. About 10% of the total 200k is automatically filled with the system prompt, tools, memory, and dynamic context. But I found that it's better to proactively do it and manually tune it. I turned off auto-compact with `/config` so I have more context available for the main conversation and more control over when and how compaction happens.
