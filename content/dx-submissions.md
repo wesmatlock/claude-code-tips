@@ -20,9 +20,8 @@
 
 | Repo | Stars | What to Submit | Notes |
 |------|-------|----------------|-------|
-| ComposioHQ/awesome-claude-skills | ? | reddit-fetch skill | Another skills list |
-| jqueryscript/awesome-claude-code | ? | dx plugin | Tools/resources list |
-| alvinunreal/awesome-claude | ? | dx plugin | General Claude resources |
+| ComposioHQ/awesome-claude-skills | 12k | reddit-fetch skill | Another skills list |
+| jqueryscript/awesome-claude-code | 85 | dx plugin | Tools/resources list (small) |
 
 ## Not Submitting
 
