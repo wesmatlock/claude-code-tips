@@ -68,4 +68,4 @@ Use `npm view @anthropic-ai/claude-code version` to check for new Claude Code ve
 - Use `read_page` to get element refs
 - Use `find` to locate elements by description
 - Click/interact using `ref` parameter - NEVER coordinates
-- Screenshots only for visual context, not for finding click targets
+- NEVER take screenshots unless explicitly requested by the user
