@@ -57,6 +57,10 @@ Use `gh` CLI for GitHub URLs (PRs, issues, etc.) since WebFetch often fails with
 
 Use Python 3.12 whenever Python 3 or Python is needed.
 
+# Claude Code
+
+Use `npm view @anthropic-ai/claude-code version` to check for new Claude Code versions.
+
 # Browser Automation
 
 **ALWAYS use DOM-based interaction. NEVER use coordinates.**
