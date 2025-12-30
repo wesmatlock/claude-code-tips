@@ -10,7 +10,7 @@ Here are my tips for getting the most out of Claude Code, including a custom sta
 ## Table of Contents
 
 - [Tip 0: Customize your status line](#tip-0-customize-your-status-line)
-- [Tip 1: Check your usage with /usage](#tip-1-check-your-usage-with-usage)
+- [Tip 1: Learn a few essential slash commands](#tip-1-learn-a-few-essential-slash-commands)
 - [Tip 2: Talk to Claude Code with your voice](#tip-2-talk-to-claude-code-with-your-voice)
 - [Tip 3: Break down large problems into smaller ones](#tip-3-break-down-large-problems-into-smaller-ones)
 - [Tip 4: Using Git and GitHub CLI like a pro](#tip-4-using-git-and-github-cli-like-a-pro)
@@ -72,9 +72,13 @@ This is especially helpful for keeping an eye on your context usage and remember
 
 To set this up, you can use [this sample script](scripts/context-bar.sh) and check the [setup instructions](scripts/README.md).
 
-## Tip 1: Check your usage with /usage
+## Tip 1: Learn a few essential slash commands
 
-Type `/usage` to see detailed information about your rate limits:
+There are a bunch of built-in slash commands (type `/` to see them all). Here are a few worth knowing:
+
+### /usage
+
+Check your rate limits:
 
 ```
  Current session
@@ -84,15 +88,35 @@ Type `/usage` to see detailed information about your rate limits:
  Current week (all models)
  █████████████                                      26% used
  Resets Jan 3, 2026, 5:59am (Asia/Tokyo)
-
- Current week (Sonnet only)
-                                                    0% used
-
- Extra usage
- Extra usage not enabled • /extra-usage to enable
 ```
 
-This shows your session usage, weekly limits across all models, Sonnet-specific usage, and whether extra usage is enabled.
+### /chrome
+
+Toggle Claude's native browser integration:
+
+```
+> /chrome
+Chrome integration enabled
+```
+
+### /mcp
+
+Manage MCP (Model Context Protocol) servers:
+
+```
+ Manage MCP servers
+ 1 server
+
+ ❯ 1. playwright  ✔ connected · Enter to view details
+
+ MCP Config locations (by scope):
+  • User config (available in all your projects):
+    • /Users/yk/.claude.json
+```
+
+### /clear
+
+Clear the conversation and start fresh.
 
 ## Tip 2: Talk to Claude Code with your voice
 
