@@ -607,7 +607,7 @@ Claude Code is amazing for any sort of research. It's essentially a Google repla
 
 The key is giving it the right pieces of information and instructions about how to access those pieces of information. It might be `gh` terminal command access, or the container approach (Tip 21), or Reddit through Gemini CLI (Tip 11), or private information through an MCP like Slack MCP, or the Cmd+A / Ctrl+A method (Tip 10) - whatever it is. Additionally, if Claude Code has trouble loading certain URLs, you can try using Playwright MCP or Claude's native browser integration (see Tip 9).
 
-In fact, I was able to save $10,000 using some research through Claude Code. I hope to be able to share this story at some point soon.
+In fact, I was even able to [save $10,000 by using Claude Code for research](content/how-i-saved-10k-with-claude-code.md).
 
 ## Tip 28: Mastering different ways of verifying its output
 
