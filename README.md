@@ -422,17 +422,15 @@ In this example:
 
 ## Tip 15: Slim down the system prompt
 
-Claude Code's system prompt and tool definitions take up about 20k tokens (~10% of your 200k context) before you even start working. I created a patch system that reduces this to about 9k tokens - saving around 11,000 tokens (~55% of the overhead).
+Claude Code's system prompt and tool definitions take up about 19k tokens (~10% of your 200k context) before you even start working. I created a patch system that reduces this to about 9k tokens - saving around 10,000 tokens (~50% of the overhead).
 
 | Component | Before | After | Savings |
 |-----------|--------|-------|---------|
-| System prompt | 3.1k | 1.8k | 1,300 tokens |
-| System tools | 15.6k | 7.1k | 8,500 tokens |
-| **Static total** | **~19k** | **~9k** | **~10,000 tokens (~52.5%)** |
-| Allowed tools list | ~1k | 0 | ~1k tokens |
-| **Total** | **~20k** | **~9k** | **~11k tokens (~55%)** |
+| System prompt | 3.0k | 1.8k | 1,200 tokens |
+| System tools | 15.6k | 7.4k | 8,200 tokens |
+| **Total** | **~19k** | **~9k** | **~10k tokens (~50%)** |
 
-The allowed tools list is dynamic context - it grows as you approve more bash commands. The patch removes this list entirely.
+**Note:** In versions before 2.1.1, there was also an "allowed tools list" that grew as you approved bash commands. This feature was removed in 2.1.1.
 
 Here's what `/context` looks like before and after patching:
 
@@ -440,7 +438,7 @@ Here's what `/context` looks like before and after patching:
 
 ![Unpatched context](assets/context-unpatched.png)
 
-**Patched (~9k, 4%)**
+**Patched (~10k, 5%)**
 
 ![Patched context](assets/context-patched.png)
 
@@ -450,7 +448,7 @@ I've tested this extensively and it works well. It feels more raw - more powerfu
 
 Check out the [system-prompt folder](system-prompt/) for the patch scripts and full details on what gets trimmed.
 
-**Why patching?** Claude Code has flags that let you provide a simplified system prompt from a file (`--system-prompt` or `--system-prompt-file`), so that's another way to go about it. But for the tool descriptions and the dynamic approved tools list, there's no official option to customize them. Patching the CLI bundle is the only way. Since my patch system handles everything in one unified approach, I'm keeping it this way for now. I might re-implement the system prompt portion using the flag in the future.
+**Why patching?** Claude Code has flags that let you provide a simplified system prompt from a file (`--system-prompt` or `--system-prompt-file`), so that's another way to go about it. But for the tool descriptions, there's no official option to customize them. Patching the CLI bundle is the only way. Since my patch system handles everything in one unified approach, I'm keeping it this way for now. I might re-implement the system prompt portion using the flag in the future.
 
 **Requirements**: These patches require npm installation (`npm install -g @anthropic-ai/claude-code`). The patching works by modifying the JavaScript bundle (`cli.js`) - other installation methods may produce compiled binaries that can't be patched this way.
 
