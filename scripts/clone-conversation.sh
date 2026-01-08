@@ -191,13 +191,9 @@ process_line() {
     if [ "$is_first_user" = "true" ]; then
         if echo "$result" | grep -q '"type":"user"' 2>/dev/null; then
             # Handle string content: "content":"text" -> "content":"[CLONED ...] text"
-            if echo "$result" | grep -qE '"content":"[^"[]' 2>/dev/null; then
-                result=$(echo "$result" | sed "s/\"content\":\"/\"content\":\"${clone_tag} /")
-            fi
+            result=$(echo "$result" | sed "s/\"content\":\"/\"content\":\"${clone_tag} /")
             # Handle array content: "text":"..." -> "text":"[CLONED ...] ..."
-            if echo "$result" | grep -qE '"content":\[.*"text":"' 2>/dev/null; then
-                result=$(echo "$result" | sed "s/\"text\":\"/\"text\":\"${clone_tag} /")
-            fi
+            result=$(echo "$result" | sed "s/\"text\":\"/\"text\":\"${clone_tag} /")
         fi
     fi
 

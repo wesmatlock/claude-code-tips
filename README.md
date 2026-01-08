@@ -565,6 +565,17 @@ ln -s /path/to/this/repo/commands/half-clone.md ~/.claude/commands/half-clone.md
 
 Or install via the [dx plugin](#install-the-dx-plugin) - no symlinks needed.
 
+### Recommended permission for clone scripts
+
+Both clone scripts need to read `~/.claude` (for conversation files and history). To avoid permission prompts from any project, add this to your global settings (`~/.claude/settings.json`):
+```json
+{
+  "permissions": {
+    "allow": ["Read(~/.claude)"]
+  }
+}
+```
+
 ## Tip 24: Use realpath to get absolute paths
 
 When you need to tell Claude Code about files in a different folder, use `realpath` to get the full absolute path:
@@ -840,7 +851,7 @@ claude plugin marketplace add ykdojo/claude-code-tips
 claude plugin install dx@ykdojo
 ```
 
-After installing, the commands are available as `/dx:clone`, `/dx:half-clone`, `/dx:handoff`, and `/dx:gha`. The `reddit-fetch` skill is invoked automatically when you ask about Reddit URLs.
+After installing, the commands are available as `/dx:clone`, `/dx:half-clone`, `/dx:handoff`, and `/dx:gha`. The `reddit-fetch` skill is invoked automatically when you ask about Reddit URLs. For the clone commands, see the [recommended permission](#recommended-permission-for-clone-scripts).
 
 **Recommended companion:** [Playwright MCP](https://github.com/microsoft/playwright-mcp) for browser automation - add with `claude mcp add -s user playwright npx @playwright/mcp@latest`
 

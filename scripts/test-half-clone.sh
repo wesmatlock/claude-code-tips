@@ -295,6 +295,62 @@ test_history_entry() {
     fi
 }
 
+# Test 9: Double tagging - half-clone a conversation that already has a tag
+test_double_tagging() {
+    log_test "Double tagging: half-cloning already-tagged conversation should have both tags"
+
+    # Create a 6-message conversation where the THIRD user message (which will be
+    # the first kept after half-clone) already has a tag. This simulates:
+    # 1. A conversation that was previously half-cloned
+    # 2. Then continued with more messages
+    # 3. Now being half-cloned again
+    local session_id
+    session_id=$(uuidgen | tr '[:upper:]' '[:lower:]')
+    local conv_file="${TEST_PROJECTS_DIR}/${TEST_PROJECT_DIRNAME}/${session_id}.jsonl"
+
+    local uuid1 uuid2 uuid3 uuid4 uuid5 uuid6
+    uuid1=$(uuidgen | tr '[:upper:]' '[:lower:]')
+    uuid2=$(uuidgen | tr '[:upper:]' '[:lower:]')
+    uuid3=$(uuidgen | tr '[:upper:]' '[:lower:]')
+    uuid4=$(uuidgen | tr '[:upper:]' '[:lower:]')
+    uuid5=$(uuidgen | tr '[:upper:]' '[:lower:]')
+    uuid6=$(uuidgen | tr '[:upper:]' '[:lower:]')
+
+    # 6 messages = 3 user messages. Half-clone skips 1, keeps 2.
+    # So messages 3-6 are kept, and message 3 (2nd user msg) becomes first.
+    # Put the existing tag on message 3 (the 2nd user message).
+    {
+        echo "{\"parentUuid\":null,\"sessionId\":\"${session_id}\",\"type\":\"user\",\"message\":{\"role\":\"user\",\"content\":\"User message 1\"},\"uuid\":\"${uuid1}\",\"timestamp\":\"2025-01-01T00:00:00.000Z\"}"
+        echo "{\"parentUuid\":\"${uuid1}\",\"sessionId\":\"${session_id}\",\"type\":\"assistant\",\"message\":{\"role\":\"assistant\",\"content\":[{\"type\":\"text\",\"text\":\"Response 1\"}]},\"uuid\":\"${uuid2}\",\"timestamp\":\"2025-01-01T00:00:00.000Z\"}"
+        echo "{\"parentUuid\":\"${uuid2}\",\"sessionId\":\"${session_id}\",\"type\":\"user\",\"message\":{\"role\":\"user\",\"content\":\"[HALF-CLONE Jan 1 12:00] User message 2\"},\"uuid\":\"${uuid3}\",\"timestamp\":\"2025-01-01T00:00:00.000Z\"}"
+        echo "{\"parentUuid\":\"${uuid3}\",\"sessionId\":\"${session_id}\",\"type\":\"assistant\",\"message\":{\"role\":\"assistant\",\"content\":[{\"type\":\"text\",\"text\":\"Response 2\"}]},\"uuid\":\"${uuid4}\",\"timestamp\":\"2025-01-01T00:00:00.000Z\"}"
+        echo "{\"parentUuid\":\"${uuid4}\",\"sessionId\":\"${session_id}\",\"type\":\"user\",\"message\":{\"role\":\"user\",\"content\":\"User message 3\"},\"uuid\":\"${uuid5}\",\"timestamp\":\"2025-01-01T00:00:00.000Z\"}"
+        echo "{\"parentUuid\":\"${uuid5}\",\"sessionId\":\"${session_id}\",\"type\":\"assistant\",\"message\":{\"role\":\"assistant\",\"content\":[{\"type\":\"text\",\"text\":\"Response 3\"}]},\"uuid\":\"${uuid6}\",\"timestamp\":\"2025-01-01T00:00:00.000Z\"}"
+    } > "$conv_file"
+
+    local output
+    output=$(run_half_clone "$session_id")
+
+    local new_session
+    new_session=$(get_new_session_from_output "$output")
+    local new_file="${TEST_PROJECTS_DIR}/${TEST_PROJECT_DIRNAME}/${new_session}.jsonl"
+
+    # Should have two [HALF-CLONE ...] tags - the new one prepended to the existing one
+    local first_user_line
+    first_user_line=$(grep '"type":"user"' "$new_file" | head -1)
+
+    # Count occurrences of [HALF-CLONE pattern
+    local tag_count
+    tag_count=$(echo "$first_user_line" | grep -oE '\[HALF-CLONE [A-Z][a-z]+ [0-9]+ [0-9]+:[0-9]+\]' | wc -l | tr -d ' ')
+
+    if [ "$tag_count" -eq 2 ]; then
+        log_pass "Double tagging works - found 2 [HALF-CLONE] tags"
+    else
+        log_fail "Expected 2 [HALF-CLONE] tags, found $tag_count"
+        echo "First user line: $first_user_line"
+    fi
+}
+
 # Main
 main() {
     echo "================================"
@@ -318,6 +374,7 @@ main() {
     test_half_clone_tag
     test_session_id_remapped
     test_history_entry
+    test_double_tagging
 
     echo ""
     echo "================================"
