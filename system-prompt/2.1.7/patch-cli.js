@@ -214,6 +214,10 @@ const patches = [
   { name: 'Slim Grep offset param (135 → 35 chars)', file: 'grep-params-offset' },
   { name: 'Slim Grep type param (114 → 30 chars)', file: 'grep-params-type' },
   { name: 'Slim todos mark complete (~150 → 45 chars)', file: 'todos-mark-complete' },
+
+  // New patches
+  { name: 'Slim ExitPlanMode allowedPrompts (~1.8KB → 450 chars)', file: 'exitplanmode-allowedprompts' },
+  { name: 'Slim MCPSearch description (~1.5KB → 400 chars)', file: 'mcpsearch-description' },
 ];
 
 // Helper: compute SHA256 hash
