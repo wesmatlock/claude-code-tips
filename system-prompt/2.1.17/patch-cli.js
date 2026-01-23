@@ -12,7 +12,8 @@ const path = require('path');
 const EXPECTED_VERSION = '2.1.17';
 const EXPECTED_HASHES = {
   npm: 'f98412938f6ce048b6cbeed73859ba3e420408a82f8966c04a6406319302e6e5',
-  native: '40d386f55d8a977f009e4d9ba4576a1fc5171df0cca58678fcf866dd3b86358e',
+  'native-linux': '40d386f55d8a977f009e4d9ba4576a1fc5171df0cca58678fcf866dd3b86358e',
+  'native-macos': 'b20f0b498ab011f3efdd9bfbc0f68304a1f08ac7f23cbbfa52117065f74fd30e',
 };
 
 // Unicode characters that native (Bun) builds escape differently
@@ -118,7 +119,7 @@ function createRegexPatch(find, replace) {
   // Two types of placeholders:
   // 1. ${varName} - matches template literal vars like ${n3}, ${T3}
   // 2. __NAME__ - matches plain identifiers like kY7, aDA (for function names)
-  const varRegex = /\$\{[a-zA-Z0-9_.]+(?:\(\))?\}/g;
+  const varRegex = /\$\{[a-zA-Z0-9_.$]+(?:\(\))?\}/g;
   const identRegex = /__[A-Z0-9_]+__/g;
 
   // Extract unique placeholders from find pattern (in order)
@@ -157,7 +158,7 @@ function createRegexPatch(find, replace) {
     const escaped = p.text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     // ${...} matches template literals, __NAME__ matches identifiers
     const capture = p.type === 'var'
-      ? '(\\$\\{[a-zA-Z0-9_.]+(?:\\(\\))?\\})'
+      ? '(\\$\\{[a-zA-Z0-9_.$]+(?:\\(\\))?\\})'
       : '([a-zA-Z0-9_$]+)';
     regexStr = regexStr.split(escaped).join(capture);
   }
@@ -276,7 +277,8 @@ function main() {
     console.error(`Got:             ${backupHash}`);
     process.exit(1);
   }
-  const buildType = backupHash === EXPECTED_HASHES.native ? 'native' : 'npm';
+  const buildType = backupHash === EXPECTED_HASHES.npm ? 'npm' :
+                    backupHash === EXPECTED_HASHES['native-linux'] ? 'native-linux' : 'native-macos';
   console.log(`Backup verified (v${EXPECTED_VERSION}, ${buildType} build)`);
 
   // 3. Restore from backup

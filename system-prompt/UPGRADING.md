@@ -10,6 +10,13 @@ This project patches the Claude Code CLI to reduce system prompt token usage. Wh
 - `restore-cli.sh` - restores CLI from backup
 - `patches/*.find.txt` - text to find in bundle
 - `patches/*.replace.txt` - replacement text (shorter)
+- `native-extract.js` - extracts cli.js from native binary (requires `npm install node-lief`)
+- `native-repack.js` - repacks patched cli.js into native binary
+- `patch-native.sh` - one-command native binary patching
+
+**Supported installations:**
+- npm (Linux/macOS) - patch `cli.js` directly
+- Native binary (Linux ELF, macOS Mach-O) - extract, patch, repack
 
 ## Quick Method: Let Claude Do It in a Container
 
@@ -170,6 +177,61 @@ done
 ```
 
 **Note:** The loop syntax above may not work in all shells. If it fails, run each container separately or use `&&` to chain commands.
+
+---
+
+# Native Binary Patching
+
+Native Claude Code binaries (installed via `curl -fsSL https://claude.ai/install.sh | bash`) embed cli.js inside the binary. We use `node-lief` to extract, patch, and repack.
+
+## Quick Method
+
+```bash
+cd system-prompt/2.X.NEW
+npm install node-lief  # one-time setup
+./patch-native.sh      # extracts, patches, repacks
+```
+
+## Manual Steps
+
+```bash
+# 1. Install dependency
+npm install node-lief
+
+# 2. Extract cli.js from binary
+node native-extract.js ~/.local/share/claude/versions/2.1.17 /tmp/native-cli.js
+
+# 3. Create backup for patcher
+cp /tmp/native-cli.js /tmp/native-cli.js.backup
+
+# 4. Apply patches
+node patch-cli.js /tmp/native-cli.js
+
+# 5. Repack into binary
+node native-repack.js ~/.local/share/claude/versions/2.1.17.backup /tmp/native-cli.js ~/.local/share/claude/versions/2.1.17
+
+# 6. Test
+~/.local/bin/claude --version
+~/.local/bin/claude -p "Any broken content? Yes or no."
+```
+
+## Platform Notes
+
+| Platform | Binary Format | cli.js Location |
+|----------|--------------|-----------------|
+| Linux | ELF | Overlay (appended) |
+| macOS | Mach-O | `__BUN/__bun` section |
+
+macOS binaries are automatically re-signed with `codesign -s -f` after repacking.
+
+## Hash Differences
+
+Native binaries have different cli.js hashes than npm:
+- npm and native have different minification
+- macOS native uses `$` in variable names (e.g., `f$`, `u$`)
+- Linux native uses standard names (e.g., `t5`, `jD`)
+
+`patch-cli.js` accepts all known hashes and auto-adapts regex patterns.
 
 ---
 
