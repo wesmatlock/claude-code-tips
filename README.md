@@ -39,7 +39,7 @@ Here are my tips for getting the most out of Claude Code, including a custom sta
 - [Tip 27: Claude Code as a research tool](#tip-27-claude-code-as-a-research-tool)
 - [Tip 28: Mastering different ways of verifying its output](#tip-28-mastering-different-ways-of-verifying-its-output)
 - [Tip 29: Claude Code as a DevOps engineer](#tip-29-claude-code-as-a-devops-engineer)
-- [Tip 30: Keep CLAUDE.md simple and concise](#tip-30-keep-claudemd-simple-and-concise)
+- [Tip 30: Keep CLAUDE.md simple and review it periodically](#tip-30-keep-claudemd-simple-and-review-it-periodically)
 - [Tip 31: Claude Code as the universal interface](#tip-31-claude-code-as-the-universal-interface)
 - [Tip 32: It's all about choosing the right level of abstraction](#tip-32-its-all-about-choosing-the-right-level-of-abstraction)
 - [Tip 33: Audit your approved commands](#tip-33-audit-your-approved-commands)
@@ -683,9 +683,13 @@ I've packaged this workflow as a `/gha` slash command - just run `/gha <url>` wi
 
 Once you identify what the particular problem was, you can just create a draft PR and go through some of the tips I mentioned earlier - check the output, make sure it looks good, let it verify its own outputs, and then turn it into a real PR to actually fix the issue. It's been working really well for me personally.
 
-## Tip 30: Keep CLAUDE.md simple and concise
+## Tip 30: Keep CLAUDE.md simple and review it periodically
 
-I think it's important to keep CLAUDE.md really simple and concise. You can just start with no CLAUDE.md at all. And if you find that you keep telling Claude Code the same thing over and over again, then you can just add it to CLAUDE.md. I know there is an option to do that through the `#` symbol, but I prefer to just ask Claude Code to either add it to the project level CLAUDE.md or the global CLAUDE.md and it'll know what to edit exactly. So you can just let Claude Code edit CLAUDE.md by itself based on your instruction.
+It's important to keep CLAUDE.md simple and as concise as possible. You can just start with no CLAUDE.md at all. And if you find that you keep telling Claude Code the same thing over and over again, then you can just add it to CLAUDE.md. I know there is an option to do that through the `#` symbol, but I prefer to just ask Claude Code to either add it to the project level CLAUDE.md or the global CLAUDE.md and it'll know what to edit exactly.
+
+![Keep it simple meme](assets/keep-it-simple-meme.jpg)
+
+It's also important to periodically review your CLAUDE.md files because they can get outdated over time. Instructions that made sense some time ago might no longer be relevant, or you might have new patterns that should be documented. I created a skill for this called [`review-claudemd`](skills/review-claudemd/SKILL.md) that analyzes your recent conversations and suggests improvements for your CLAUDE.md files.
 
 ## Tip 31: Claude Code as the universal interface
 
@@ -905,7 +909,7 @@ This repo is also a Claude Code plugin called `dx` (developer experience). It bu
 | `/dx:clone` | Clone conversations to branch off (Tip 23) |
 | `/dx:half-clone` | Half-clone to reduce context (Tip 23) |
 | `reddit-fetch` | Fetch Reddit content via Gemini CLI (Tip 11) - auto-invoked when needed |
-| `review-claudemd` | Review conversations to improve CLAUDE.md files |
+| `review-claudemd` | Review conversations to improve CLAUDE.md files (Tip 30) |
 
 **Install with two commands:**
 
