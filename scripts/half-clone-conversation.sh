@@ -99,133 +99,14 @@ get_project_from_conv_file() {
     echo "$project_dirname" | sed 's|^-|/|' | sed 's|-|/|g'
 }
 
-# UUID mapping using temp file (works around subshell issues)
-UUID_MAP_FILE=""
-
-init_uuid_map() {
-    UUID_MAP_FILE=$(mktemp)
-}
-
-cleanup_uuid_map() {
-    [ -n "$UUID_MAP_FILE" ] && [ -f "$UUID_MAP_FILE" ] && rm -f "$UUID_MAP_FILE"
-}
-
-get_mapped_uuid() {
-    local old_uuid="$1"
-
-    # Check if we already have a mapping
-    local existing
-    existing=$(grep "^${old_uuid}:" "$UUID_MAP_FILE" 2>/dev/null | cut -d: -f2 || true)
-    if [ -n "$existing" ]; then
-        echo "$existing"
-        return
-    fi
-
-    # Generate new UUID and store mapping
-    local new_uuid
-    new_uuid=$(generate_uuid)
-    echo "${old_uuid}:${new_uuid}" >> "$UUID_MAP_FILE"
-    echo "$new_uuid"
-}
-
-# Extract UUID value from a JSON key-value pattern like "uuid":"value"
-extract_uuid_value() {
-    local line="$1"
-    local key="$2"
-    # Extract the value after "key":"
-    echo "$line" | grep -oE "\"${key}\":\"[a-f0-9-]{36}\"" 2>/dev/null | head -1 | sed "s/\"${key}\":\"//;s/\"//" || true
-}
-
-# Replace a UUID value in the line
-replace_uuid_in_line() {
-    local line="$1"
-    local key="$2"
-    local old_val="$3"
-    local new_val="$4"
-    echo "$line" | sed "s|\"${key}\":\"${old_val}\"|\"${key}\":\"${new_val}\"|g"
-}
-
-# Remove parentUuid from a line (set to null)
-nullify_parent_uuid() {
-    local line="$1"
-    # Replace "parentUuid":"<uuid>" with "parentUuid":null
-    echo "$line" | sed 's/"parentUuid":"[a-f0-9-]*"/"parentUuid":null/g'
-}
-
-# Halve token counts in usage data (for accurate context bar display)
-halve_usage_tokens() {
-    local line="$1"
-    for field in input_tokens cache_read_input_tokens cache_creation_input_tokens; do
-        local value=$(echo "$line" | grep -oE "\"${field}\":[0-9]+" | grep -oE '[0-9]+')
-        if [[ -n "$value" ]]; then
-            local halved=$((value / 2))
-            line=$(echo "$line" | sed "s/\"${field}\":${value}/\"${field}\":${halved}/")
-        fi
-    done
-    echo "$line"
-}
-
-# Process a single JSONL line
-process_line() {
-    local line="$1"
-    local new_session="$2"
-    local is_first_message="$3"
-    local is_first_user="$4"
-    local clone_tag="$5"
-    local result="$line"
-
-    # Replace sessionId
-    local old_session
-    old_session=$(extract_uuid_value "$result" "sessionId")
-    if [ -n "$old_session" ]; then
-        result=$(replace_uuid_in_line "$result" "sessionId" "$old_session" "$new_session")
-    fi
-
-    # Replace uuid field (not parentUuid, not sessionId)
-    local old_uuid
-    old_uuid=$(echo "$result" | grep -oE '"uuid":"[a-f0-9-]{36}"' 2>/dev/null | head -1 | sed 's/"uuid":"//;s/"//' || true)
-    if [ -n "$old_uuid" ]; then
-        local new_uuid
-        new_uuid=$(get_mapped_uuid "$old_uuid")
-        result=$(replace_uuid_in_line "$result" "uuid" "$old_uuid" "$new_uuid")
-    fi
-
-    # Handle parentUuid - nullify for first message, remap for others
-    if [ "$is_first_message" = "true" ]; then
-        result=$(nullify_parent_uuid "$result")
-    else
-        local old_parent
-        old_parent=$(extract_uuid_value "$result" "parentUuid")
-        if [ -n "$old_parent" ]; then
-            local new_parent
-            new_parent=$(get_mapped_uuid "$old_parent")
-            result=$(replace_uuid_in_line "$result" "parentUuid" "$old_parent" "$new_parent")
-        fi
-    fi
-
-    # Replace messageId
-    local old_msgid
-    old_msgid=$(extract_uuid_value "$result" "messageId")
-    if [ -n "$old_msgid" ]; then
-        local new_msgid
-        new_msgid=$(get_mapped_uuid "$old_msgid")
-        result=$(replace_uuid_in_line "$result" "messageId" "$old_msgid" "$new_msgid")
-    fi
-
-    # Tag first user message with clone tag
-    if [ "$is_first_user" = "true" ]; then
-        if echo "$result" | grep -q '"type":"user"' 2>/dev/null; then
-            # Handle string content: "content":"text" -> "content":"[HALF-CLONE ...] text"
-            result=$(echo "$result" | sed "s/\"content\":\"/\"content\":\"${clone_tag} /")
-            # Handle array content: "text":"..." -> "text":"[HALF-CLONE ...] ..."
-            result=$(echo "$result" | sed "s/\"text\":\"/\"text\":\"${clone_tag} /")
-        fi
-    fi
-
-    # Halve token counts in usage data
-    result=$(halve_usage_tokens "$result")
-
-    echo "$result"
+# Pre-generate UUIDs for the awk script
+# We need enough UUIDs for all unique uuid/parentUuid/messageId values
+pre_generate_uuids() {
+    local count="$1"
+    local output_file="$2"
+    for ((i=0; i<count; i++)); do
+        generate_uuid
+    done > "$output_file"
 }
 
 half_clone_conversation() {
@@ -276,23 +157,16 @@ half_clone_conversation() {
     local keep_clean_count
     keep_clean_count=$((total_clean_user_messages - skip_clean_count))
 
-    # Find the line number where the target clean user message starts
-    local skip_count=0
-    local clean_user_count=0
-    while IFS= read -r line; do
-        ((skip_count++)) || true
-        # Check if it's a user message that is NOT a tool_result
-        if echo "$line" | grep -q '"type":"user"' 2>/dev/null; then
-            if ! echo "$line" | grep -q '"type":"tool_result"' 2>/dev/null; then
-                ((clean_user_count++)) || true
-                if [ "$clean_user_count" -gt "$skip_clean_count" ]; then
-                    # Found the clean user message we want to start from
-                    ((skip_count--)) || true
-                    break
-                fi
-            fi
-        fi
-    done < "$source_file"
+    # OPTIMIZED: Find the line number where the target clean user message starts
+    # Use grep -n to get all clean user message line numbers in one pass
+    local clean_user_line_numbers
+    clean_user_line_numbers=$(grep -n '"type":"user"' "$source_file" | grep -v '"type":"tool_result"' | cut -d: -f1)
+
+    # Get the line number of the (skip_clean_count + 1)th clean user message
+    local skip_count
+    skip_count=$(echo "$clean_user_line_numbers" | sed -n "$((skip_clean_count + 1))p")
+    # We want to skip lines BEFORE this one, so subtract 1
+    skip_count=$((skip_count - 1))
 
     log_info "Skipping first $skip_clean_count clean user messages ($skip_count lines), keeping $keep_clean_count clean user messages"
 
@@ -310,33 +184,28 @@ half_clone_conversation() {
     mkdir -p "$project_dir"
     log_info "Half-cloning conversation to: $target_file"
 
-    # Initialize UUID mapping
-    init_uuid_map
-    trap cleanup_uuid_map EXIT
-
-    # First pass: find if last clean user message is a clone/half-clone command
+    # OPTIMIZED First pass: find if last clean user message is a clone/half-clone command
+    # Use grep -n to find all user messages in a single pass, then filter
     local stop_at_line=0
-    local scan_line=0
     local last_clone_cmd_line=0
     local last_clean_user_line=0
 
-    while IFS= read -r line || [ -n "$line" ]; do
-        [ -z "$line" ] && continue
-        ((scan_line++)) || true
+    # Get all user message lines with line numbers (much faster than per-line grep)
+    # Filter to clean user messages (not tool_result, not isMeta)
+    local clean_user_lines
+    clean_user_lines=$(grep -n '"type":"user"' "$source_file" | grep -v '"type":"tool_result"' | grep -v '"isMeta":true' || true)
 
-        # Check for clean user message (type:user but not tool_result or isMeta)
-        if echo "$line" | grep -q '"type":"user"' 2>/dev/null; then
-            if ! echo "$line" | grep -q '"type":"tool_result"' 2>/dev/null; then
-                if ! echo "$line" | grep -q '"isMeta":true' 2>/dev/null; then
-                    last_clean_user_line=$scan_line
-                    # Check if this is a clone command (matches both dx:clone and clone, dx:half-clone and half-clone)
-                    if echo "$line" | grep -qE '<command-message>(dx:)?clone</command-message>|<command-message>(dx:)?half-clone</command-message>' 2>/dev/null; then
-                        last_clone_cmd_line=$scan_line
-                    fi
-                fi
-            fi
+    if [ -n "$clean_user_lines" ]; then
+        # Get the last clean user message line
+        local last_line_info
+        last_line_info=$(echo "$clean_user_lines" | tail -1)
+        last_clean_user_line=$(echo "$last_line_info" | cut -d: -f1)
+
+        # Check if it's a clone command
+        if echo "$last_line_info" | grep -qE '<command-message>(dx:)?clone</command-message>|<command-message>(dx:)?half-clone</command-message>' 2>/dev/null; then
+            last_clone_cmd_line=$last_clean_user_line
         fi
-    done < "$source_file"
+    fi
 
     # If the last clean user message is a clone command, stop before it
     if [ "$last_clone_cmd_line" -gt 0 ] && [ "$last_clone_cmd_line" -eq "$last_clean_user_line" ]; then
@@ -344,43 +213,130 @@ half_clone_conversation() {
         log_info "Will exclude /clone command and subsequent messages (line $stop_at_line onwards)"
     fi
 
-    # Second pass: process the file - skip first half
-    local current_line=0
-    local output_line_count=0
-    local first_message_processed="false"
-    local first_user_found="false"
+    # Pre-generate UUIDs for awk (estimate: 3 per line for uuid, parentUuid, messageId)
+    local lines_to_process=$(($(wc -l < "$source_file") - skip_count))
+    local uuid_count=$((lines_to_process * 3 + 100))  # Extra buffer
+    local uuid_file
+    uuid_file=$(mktemp)
+    trap "rm -f '$uuid_file'" EXIT
+    log_info "Pre-generating UUIDs..."
+    pre_generate_uuids "$uuid_count" "$uuid_file"
 
-    while IFS= read -r line || [ -n "$line" ]; do
-        [ -z "$line" ] && continue
-        ((current_line++)) || true
+    # Process with awk - single pass, no external commands per line
+    log_info "Processing with awk..."
+    awk -v skip_count="$skip_count" \
+         -v stop_at_line="$stop_at_line" \
+         -v new_session="$new_session" \
+         -v clone_tag="$clone_tag" \
+         -v uuid_file="$uuid_file" '
+    BEGIN {
+        first_message = 1
+        first_user = 1
+        output_count = 0
+        uuid_idx = 0
+        # Load pre-generated UUIDs
+        while ((getline uuid < uuid_file) > 0) {
+            uuids[uuid_idx++] = uuid
+        }
+        close(uuid_file)
+        next_uuid = 0
+    }
 
-        # Skip first half
-        if [ "$current_line" -le "$skip_count" ]; then
-            continue
-        fi
+    function get_new_uuid(old_uuid) {
+        if (old_uuid in uuid_map) {
+            return uuid_map[old_uuid]
+        }
+        new_uuid = uuids[next_uuid++]
+        uuid_map[old_uuid] = new_uuid
+        return new_uuid
+    }
 
-        # Stop if we've reached the clone command line
-        if [ "$stop_at_line" -gt 0 ] && [ "$current_line" -ge "$stop_at_line" ]; then
-            break
-        fi
+    function extract_uuid(line, key,    pattern, match_str, uuid) {
+        pattern = "\"" key "\":\"[a-f0-9-]{36}\""
+        if (match(line, pattern)) {
+            match_str = substr(line, RSTART, RLENGTH)
+            # Extract just the UUID value
+            uuid = match_str
+            gsub("\"" key "\":\"", "", uuid)
+            gsub("\"", "", uuid)
+            return uuid
+        }
+        return ""
+    }
 
-        local is_first_message="false"
-        local is_first_user="false"
+    function halve_number(line, field,    pattern, num, halved) {
+        pattern = "\"" field "\":[0-9]+"
+        if (match(line, pattern)) {
+            match_str = substr(line, RSTART, RLENGTH)
+            gsub("\"" field "\":", "", match_str)
+            num = int(match_str)
+            halved = int(num / 2)
+            gsub("\"" field "\":" num, "\"" field "\":" halved, line)
+        }
+        return line
+    }
 
-        if [ "$first_message_processed" = "false" ]; then
-            is_first_message="true"
-            first_message_processed="true"
-        fi
+    NR <= skip_count { next }
+    stop_at_line > 0 && NR >= stop_at_line { exit }
+    /^$/ { next }
 
-        if [ "$first_user_found" = "false" ] && echo "$line" | grep -q '"type":"user"' 2>/dev/null; then
-            is_first_user="true"
-            first_user_found="true"
-        fi
+    {
+        line = $0
 
-        process_line "$line" "$new_session" "$is_first_message" "$is_first_user" "$clone_tag"
-        ((output_line_count++)) || true
-    done < "$source_file" > "$target_file"
+        # Replace sessionId
+        old_session = extract_uuid(line, "sessionId")
+        if (old_session != "") {
+            gsub("\"sessionId\":\"" old_session "\"", "\"sessionId\":\"" new_session "\"", line)
+        }
 
+        # Replace uuid (not parentUuid, not sessionId) - look for standalone "uuid"
+        if (match(line, /"uuid":"[a-f0-9-]{36}"/)) {
+            match_str = substr(line, RSTART, RLENGTH)
+            old_uuid = match_str
+            gsub("\"uuid\":\"", "", old_uuid)
+            gsub("\"", "", old_uuid)
+            new_uuid = get_new_uuid(old_uuid)
+            gsub("\"uuid\":\"" old_uuid "\"", "\"uuid\":\"" new_uuid "\"", line)
+        }
+
+        # Handle parentUuid
+        if (first_message) {
+            # Nullify parentUuid for first message
+            gsub(/"parentUuid":"[a-f0-9-]*"/, "\"parentUuid\":null", line)
+            first_message = 0
+        } else {
+            old_parent = extract_uuid(line, "parentUuid")
+            if (old_parent != "") {
+                new_parent = get_new_uuid(old_parent)
+                gsub("\"parentUuid\":\"" old_parent "\"", "\"parentUuid\":\"" new_parent "\"", line)
+            }
+        }
+
+        # Replace messageId
+        old_msgid = extract_uuid(line, "messageId")
+        if (old_msgid != "") {
+            new_msgid = get_new_uuid(old_msgid)
+            gsub("\"messageId\":\"" old_msgid "\"", "\"messageId\":\"" new_msgid "\"", line)
+        }
+
+        # Tag first user message
+        if (first_user && index(line, "\"type\":\"user\"") > 0) {
+            gsub("\"content\":\"", "\"content\":\"" clone_tag " ", line)
+            gsub("\"text\":\"", "\"text\":\"" clone_tag " ", line)
+            first_user = 0
+        }
+
+        # Halve token counts
+        line = halve_number(line, "input_tokens")
+        line = halve_number(line, "cache_read_input_tokens")
+        line = halve_number(line, "cache_creation_input_tokens")
+
+        print line
+    }
+    ' "$source_file" > "$target_file"
+
+    local output_line_count
+    output_line_count=$(wc -l < "$target_file" | tr -d ' ')
     log_success "Wrote $output_line_count messages to $target_file"
 
     # Update history.jsonl
