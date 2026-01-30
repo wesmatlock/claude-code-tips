@@ -101,6 +101,26 @@
       opacity: 1;
     }
 
+    .qr-container {
+      display: flex;
+      gap: 80px;
+    }
+
+    .qr-item {
+      text-align: center;
+    }
+
+    .qr-container img {
+      width: 350px;
+      height: 350px;
+    }
+
+    .qr-label {
+      margin-top: 5px;
+      font-size: 1.4rem;
+      color: #888;
+    }
+
     .slide img {
       max-width: 85%;
       max-height: 75vh;
@@ -350,6 +370,20 @@
   <!-- Slide 24: Final -->
   <div class="slide">
     <h1>more tokens != s**t</h1>
+  </div>
+
+  <!-- Slide 25: QR codes -->
+  <div class="slide">
+    <div class="qr-container">
+      <div class="qr-item">
+        <img src="qr-github.png" alt="GitHub QR">
+        <div class="qr-label">45 Claude Code tips</div>
+      </div>
+      <div class="qr-item">
+        <img src="qr-linkedin.png" alt="LinkedIn QR">
+        <div class="qr-label">LinkedIn</div>
+      </div>
+    </div>
   </div>
 
   <div class="progress"></div>
