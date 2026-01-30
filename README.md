@@ -815,7 +815,7 @@ As I mentioned earlier in this document, I've created a custom transcription too
 
 Here's another example: [korotovsky/slack-mcp-server](https://github.com/korotovsky/slack-mcp-server), a popular Slack MCP with almost 1,000 stars, is designed to run as a Docker container. I had trouble using it smoothly inside my own Docker container (Docker-in-Docker complications). Instead of fighting with that setup, I just asked Claude Code to write a CLI using Slack's Node SDK directly. It worked really well.
 
-This is an exciting time. Whatever you want to get done, you can ask Claude Code to do it. If it's small enough, you can build it in an hour or two.
+This is an exciting time. Whatever you want to get done, you can ask Claude Code to do it. If it's small enough, you can build it in an hour or two. I even created a [slide deck template](https://ykdojo.github.io/claude-code-tips/content/spectrum-slides.html) - it's a single HTML file with CSS and JavaScript that lets you embed an interactive, persistent terminal process inside.
 
 ## Tip 38: Navigating and editing your input box
 
