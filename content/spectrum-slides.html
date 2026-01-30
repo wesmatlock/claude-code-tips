@@ -121,6 +121,69 @@
       color: #888;
     }
 
+    .terminal-frame {
+      width: 100%;
+      height: 80vh;
+      border: none;
+      border-radius: 8px;
+    }
+
+    .pr-screenshot {
+      height: 80vh;
+      width: auto;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+
+    .side-by-side {
+      display: flex;
+      gap: 20px;
+      width: 95%;
+      height: 80vh;
+      align-items: center;
+    }
+
+    .terminal-container {
+      flex: 1;
+      height: 100%;
+      position: relative;
+    }
+
+    .terminal-fallback {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #1a1a1a;
+      border: 2px dashed #444;
+      border-radius: 8px;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      color: #888;
+    }
+
+    .terminal-fallback p {
+      font-size: 1.5rem;
+      margin: 10px;
+    }
+
+    .terminal-fallback .fallback-hint {
+      font-size: 1rem;
+      font-family: monospace;
+      color: #666;
+    }
+
+    .terminal-container.offline .terminal-frame {
+      display: none;
+    }
+
+    .terminal-container.offline .terminal-fallback {
+      display: flex;
+    }
+
     .slide img {
       max-width: 85%;
       max-height: 75vh;
@@ -287,7 +350,23 @@
     </div>
   </div>
 
-  <!-- Slide 16: Level 4 details 2 -->
+  <!-- Slide 16: Terminal demo
+       To run: cd ~/Desktop/projects/librarian2 && ttyd -W zsh
+  -->
+  <div class="slide">
+    <div class="side-by-side">
+      <div class="terminal-container">
+        <iframe src="http://localhost:7681" class="terminal-frame" id="terminal-iframe"></iframe>
+        <div class="terminal-fallback" id="terminal-fallback">
+          <p>Live terminal demo</p>
+          <p class="fallback-hint">To run locally: cd ~/Desktop/projects/librarian2 && ttyd -W zsh</p>
+        </div>
+      </div>
+      <img src="librarian2-pr-screenshot.png" alt="PR #2" class="pr-screenshot">
+    </div>
+  </div>
+
+  <!-- Slide 17: Level 4 details 2 -->
   <div class="slide" data-progressive>
     <div class="content">
       <ul>
@@ -497,6 +576,17 @@
     const slideNum = parseInt(hashParts[0]) - 1;
     const itemCount = hashParts[1] !== undefined ? parseInt(hashParts[1]) : undefined;
     showSlide(slideNum >= 0 && slideNum < slides.length ? slideNum : 0, itemCount);
+
+    // Check if ttyd is running
+    fetch('http://localhost:7681', { mode: 'no-cors' })
+      .then(() => {
+        // ttyd is running
+        document.querySelector('.terminal-container')?.classList.remove('offline');
+      })
+      .catch(() => {
+        // ttyd is not running
+        document.querySelector('.terminal-container')?.classList.add('offline');
+      });
   </script>
 </body>
 </html>
