@@ -6,9 +6,17 @@
 # Continue on errors (we handle them individually)
 set +e
 
-REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_URL="https://raw.githubusercontent.com/ykdojo/claude-code-tips/main"
+SCRIPT_DIR="$(cd "$(dirname "$0")" 2>/dev/null && pwd)"
 CLAUDE_DIR="$HOME/.claude"
 SETTINGS_FILE="$CLAUDE_DIR/settings.json"
+
+# Check if running from local repo or via curl
+if [[ -f "$SCRIPT_DIR/context-bar.sh" ]]; then
+    RUN_MODE="local"
+else
+    RUN_MODE="remote"
+fi
 
 # Colors
 GREEN='\033[0;32m'
@@ -131,7 +139,12 @@ if should_skip "3"; then
 elif json_has_key '.statusLine'; then
     echo -e "${GREEN}[Already configured]${NC} Status line"
 else
-    cp "$REPO_DIR/scripts/context-bar.sh" "$CLAUDE_DIR/scripts/context-bar.sh"
+    # Download or copy context-bar.sh
+    if [[ "$RUN_MODE" == "local" ]]; then
+        cp "$SCRIPT_DIR/context-bar.sh" "$CLAUDE_DIR/scripts/context-bar.sh"
+    else
+        curl -sL "$REPO_URL/scripts/context-bar.sh" -o "$CLAUDE_DIR/scripts/context-bar.sh"
+    fi
     chmod +x "$CLAUDE_DIR/scripts/context-bar.sh"
     tmp=$(mktemp)
     jq '.statusLine = {"type": "command", "command": "~/.claude/scripts/context-bar.sh"}' "$SETTINGS_FILE" > "$tmp"
